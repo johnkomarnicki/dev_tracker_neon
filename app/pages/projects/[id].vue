@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { getIssuesByProject, getProject, getProjectStats } from '~/services/devtrack'
 import type { Issue } from '~~/types/devtrack'
 
 const route = useRoute()
@@ -10,28 +9,21 @@ const {
   status: projectStatus,
   error: projectError,
   refresh: refreshProject
-} = useLazyAsyncData(() => `project:${projectId.value}`, () => getProject(projectId.value))
-
-const {
-  data: stats,
-  status: statsStatus,
-  error: statsError,
-  refresh: refreshStats
-} = useLazyAsyncData(() => `project-stats:${projectId.value}`, () => getProjectStats(projectId.value))
+} = useLazyAsyncData(() => `project:${projectId.value}`, () => $fetch(`/api/projects/${projectId.value}`))
 
 const {
   data: issues,
   status: issuesStatus,
   error: issuesError,
   refresh: refreshIssues
-} = useLazyAsyncData(() => `project-issues:${projectId.value}`, () => getIssuesByProject(projectId.value), {
+} = useLazyAsyncData(() => `project-issues:${projectId.value}`, () => $fetch(`/api/projects/${projectId.value}/issues`), {
   default: () => []
 })
 
 useHead({ title: () => `${project.value?.name ?? 'Project'} · DevTrack` })
 
 const isProjectLoading = computed(() => projectStatus.value === 'pending' && !project.value)
-const isNotFound = computed(() => projectStatus.value === 'success' && !project.value)
+const isNotFound = computed(() => projectError.value?.statusCode === 404)
 
 const isCreateIssueOpen = ref(false)
 const isDetailsOpen = ref(false)
@@ -42,13 +34,9 @@ function openIssue(issue: Issue) {
   isDetailsOpen.value = true
 }
 
-function refreshIssueData() {
-  return Promise.all([refreshIssues(), refreshStats()])
-}
-
 function onIssueUpdated(issue: Issue) {
   selectedIssue.value = issue
-  refreshIssueData()
+  refreshIssues()
 }
 </script>
 
@@ -70,7 +58,7 @@ function onIssueUpdated(issue: Issue) {
     <template #body>
       <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <AppErrorState
-          v-if="projectError"
+          v-if="projectError && !isNotFound"
           title="Could not load project"
           :error="projectError"
           @retry="refreshProject()"
@@ -80,7 +68,7 @@ function onIssueUpdated(issue: Issue) {
           v-else-if="isNotFound"
           icon="i-lucide-folder-x"
           title="Project not found"
-          description="This project does not exist. Projects created in this session disappear when the page is refreshed."
+          description="This project does not exist or has been deleted."
           variant="outline"
           :actions="[{ label: 'Back to projects', icon: 'i-lucide-arrow-left', color: 'neutral', variant: 'outline', to: '/projects' }]"
           class="py-16"
@@ -102,14 +90,6 @@ function onIssueUpdated(issue: Issue) {
               <UButton label="New issue" icon="i-lucide-plus" @click="isCreateIssueOpen = true" />
             </template>
           </AppPageHeader>
-
-          <AppErrorState
-            v-if="statsError"
-            title="Could not load project statistics"
-            :error="statsError"
-            @retry="refreshStats()"
-          />
-          <ProjectStats v-else :stats="stats" :loading="statsStatus === 'pending'" />
 
           <section class="flex flex-col gap-3">
             <div class="flex items-center justify-between">
@@ -138,7 +118,7 @@ function onIssueUpdated(issue: Issue) {
       <CreateIssueModal
         v-model:open="isCreateIssueOpen"
         :project-id="projectId"
-        @created="refreshIssueData()"
+        @created="refreshIssues()"
       />
 
       <IssueDetailsSlideover

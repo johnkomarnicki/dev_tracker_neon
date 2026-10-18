@@ -8,17 +8,13 @@
  * Planned replacements:
  * - Projects and issues      → Neon Postgres
  * - uploadIssueAttachment()  → Neon Object Storage
- * - getProjectStats()        → Neon Function
  */
 import { seedIssues, seedProjects } from '~/data/seed'
 import type {
-  CreateIssueInput,
   CreateProjectInput,
   Issue,
   IssueAttachment,
-  IssueStatus,
-  Project,
-  ProjectStats
+  Project
 } from '~~/types/devtrack'
 
 const MOCK_LATENCY_MS = 350
@@ -41,22 +37,7 @@ function createId(prefix: string) {
   return `${prefix}_${crypto.randomUUID().slice(0, 8)}`
 }
 
-function newestFirst(a: { createdAt: string }, b: { createdAt: string }) {
-  return b.createdAt.localeCompare(a.createdAt)
-}
-
 // ─── Projects ────────────────────────────────────────────────────────────────
-
-export async function getProjects(): Promise<Project[]> {
-  await simulateLatency()
-  return clone([...db.projects].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')))
-}
-
-export async function getProject(id: string): Promise<Project | null> {
-  await simulateLatency()
-  const project = db.projects.find(project => project.id === id)
-  return project ? clone(project) : null
-}
 
 export async function createProject(input: CreateProjectInput): Promise<Project> {
   await simulateLatency()
@@ -72,48 +53,10 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
 
 // ─── Issues ──────────────────────────────────────────────────────────────────
 
-export async function getIssues(): Promise<Issue[]> {
-  await simulateLatency()
-  return clone([...db.issues].sort(newestFirst))
-}
-
-export async function getIssuesByProject(projectId: string): Promise<Issue[]> {
-  await simulateLatency()
-  return clone(db.issues.filter(issue => issue.projectId === projectId).sort(newestFirst))
-}
-
 export async function getIssue(id: string): Promise<Issue | null> {
   await simulateLatency()
   const issue = db.issues.find(issue => issue.id === id)
   return issue ? clone(issue) : null
-}
-
-export async function createIssue(input: CreateIssueInput): Promise<Issue> {
-  await simulateLatency()
-  if (!db.projects.some(project => project.id === input.projectId)) {
-    throw new Error('Project not found')
-  }
-  const issue: Issue = {
-    id: createId('iss'),
-    projectId: input.projectId,
-    title: input.title,
-    description: input.description,
-    status: input.status,
-    attachment: input.attachment,
-    createdAt: new Date().toISOString()
-  }
-  db.issues.push(issue)
-  return clone(issue)
-}
-
-export async function updateIssueStatus(id: string, status: IssueStatus): Promise<Issue> {
-  await simulateLatency()
-  const issue = db.issues.find(issue => issue.id === id)
-  if (!issue) {
-    throw new Error('Issue not found')
-  }
-  issue.status = status
-  return clone(issue)
 }
 
 // ─── Attachments ─────────────────────────────────────────────────────────────
@@ -129,18 +72,5 @@ export async function uploadIssueAttachment(file: File): Promise<IssueAttachment
     type: file.type,
     size: file.size,
     url: URL.createObjectURL(file)
-  }
-}
-
-// ─── Stats ───────────────────────────────────────────────────────────────────
-
-export async function getProjectStats(projectId: string): Promise<ProjectStats> {
-  await simulateLatency()
-  const issues = db.issues.filter(issue => issue.projectId === projectId)
-  return {
-    total: issues.length,
-    open: issues.filter(issue => issue.status === 'open').length,
-    inProgress: issues.filter(issue => issue.status === 'in_progress').length,
-    closed: issues.filter(issue => issue.status === 'closed').length
   }
 }

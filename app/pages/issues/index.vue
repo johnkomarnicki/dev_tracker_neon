@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { getIssues, getProjects } from '~/services/devtrack'
 import type { Issue, IssueStatus } from '~~/types/devtrack'
 
 useHead({ title: 'Issues · DevTrack' })
@@ -9,9 +8,9 @@ const {
   status: issuesStatus,
   error: issuesError,
   refresh: refreshIssues
-} = useLazyAsyncData('issues', () => getIssues(), { default: () => [] })
+} = useLazyAsyncData('issues', () => $fetch('/api/issues'), { default: () => [] })
 
-const { data: projects } = useLazyAsyncData('issue-filter-projects', () => getProjects(), { default: () => [] })
+const { data: projects } = useLazyAsyncData('issue-filter-projects', () => $fetch('/api/projects'), { default: () => [] })
 
 const projectNames = computed(() =>
   Object.fromEntries(projects.value.map(project => [project.id, project.name]))
@@ -36,7 +35,7 @@ const hasFilters = computed(() => !!search.value || projectFilter.value !== 'all
 const filteredIssues = computed(() => {
   const query = search.value.trim().toLowerCase()
   return issues.value.filter(issue =>
-    (projectFilter.value === 'all' || issue.projectId === projectFilter.value)
+    (projectFilter.value === 'all' || issue.project_id === projectFilter.value)
     && (statusFilter.value === 'all' || issue.status === statusFilter.value)
     && (!query || issue.title.toLowerCase().includes(query))
   )
@@ -112,7 +111,7 @@ function onIssueUpdated(issue: Issue) {
       <IssueDetailsSlideover
         v-model:open="isDetailsOpen"
         :issue="selectedIssue"
-        :project-name="selectedIssue ? projectNames[selectedIssue.projectId] : undefined"
+        :project-name="selectedIssue ? projectNames[selectedIssue.project_id] : undefined"
         @updated="onIssueUpdated"
       />
     </template>

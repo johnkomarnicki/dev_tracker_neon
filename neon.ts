@@ -4,9 +4,6 @@ export default defineConfig({
   auth: true,
   buckets: {
     uploads: { access: "private" },
+    screenshots: { access: "public_read" },
   },
-  functions: {
-    api: { name: "api", source: "./hello.ts" },
-  },
-  preview: {},
 });

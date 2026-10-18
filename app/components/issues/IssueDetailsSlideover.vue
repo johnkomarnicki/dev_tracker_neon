@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { updateIssueStatus } from '~/services/devtrack'
 import type { Issue, IssueStatus } from '~~/types/devtrack'
 
 const props = defineProps<{
@@ -21,7 +20,10 @@ async function onStatusChange(status: IssueStatus) {
 
   updating.value = true
   try {
-    const issue = await updateIssueStatus(props.issue.id, status)
+    const issue = await $fetch(`/api/issues/${props.issue.id}`, {
+      method: 'PATCH',
+      body: { status }
+    })
     toast.add({
       title: 'Issue status updated',
       description: `Moved to ${getIssueStatus(status).label}.`,
@@ -84,7 +86,7 @@ async function onStatusChange(status: IssueStatus) {
             Created
           </dt>
           <dd class="tabular-nums text-default">
-            {{ formatDateTime(issue.createdAt) }}
+            {{ issue.created_at ? formatDateTime(issue.created_at) : '—' }}
           </dd>
         </dl>
 
@@ -106,7 +108,10 @@ async function onStatusChange(status: IssueStatus) {
           <h3 class="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
             Screenshot
           </h3>
-          <IssueAttachment v-if="issue.attachment" :attachment="issue.attachment" />
+          <IssueAttachment
+            v-if="issue.attachment_key"
+            :attachment="{ name: issue.attachment_name ?? 'Screenshot', type: issue.attachment_type ?? '', url: issue.attachment_url ?? undefined }"
+          />
           <p v-else class="text-sm text-dimmed">
             No screenshot attached.
           </p>
