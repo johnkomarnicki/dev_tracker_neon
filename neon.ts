@@ -4,6 +4,5 @@ export default defineConfig({
   auth: true,
   buckets: {
     uploads: { access: "private" },
-    screenshots: { access: "public_read" },
   },
 });
