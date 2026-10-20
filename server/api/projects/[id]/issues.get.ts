@@ -9,5 +9,5 @@ export default defineEventHandler(async (event): Promise<Issue[]> => {
     ORDER BY created_at DESC
   `;
 
-  return issues as Issue[];
+  return (issues as Issue[]).map((issue) => withAttachmentUrl(issue, "screenshots"));
 });

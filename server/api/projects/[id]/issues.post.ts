@@ -18,5 +18,5 @@ export default defineEventHandler(async (event): Promise<Issue> => {
     RETURNING *
   `;
 
-  return issue as Issue;
+  return withAttachmentUrl(issue as Issue, "screenshots");
 });
