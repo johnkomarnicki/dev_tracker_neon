@@ -5,8 +5,4 @@ export default defineConfig({
   buckets: {
     uploads: { access: "private" },
   },
-  functions: {
-    api: { name: "api", source: "./hello.ts" },
-  },
-  preview: {},
 });
