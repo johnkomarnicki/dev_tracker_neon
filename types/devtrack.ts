@@ -11,7 +11,7 @@ export type IssueAttachment = {
   key?: string;
   name: string;
   type: string;
-  size: number;
+  size?: number;
   url?: string;
   attachment_url?: string | null;
 };
@@ -27,6 +27,13 @@ export type Issue = {
   attachment_name: string | null;
   attachment_type: string | null;
   created_at: string | null;
+};
+
+export type ProjectStats = {
+  total: number;
+  open: number;
+  inProgress: number;
+  closed: number;
 };
 
 export type CreateProjectInput = {

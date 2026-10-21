@@ -36,7 +36,7 @@ const hasFilters = computed(() => !!search.value || projectFilter.value !== 'all
 const filteredIssues = computed(() => {
   const query = search.value.trim().toLowerCase()
   return issues.value.filter(issue =>
-    (projectFilter.value === 'all' || issue.projectId === projectFilter.value)
+    (projectFilter.value === 'all' || issue.project_id === projectFilter.value)
     && (statusFilter.value === 'all' || issue.status === statusFilter.value)
     && (!query || issue.title.toLowerCase().includes(query))
   )
@@ -112,7 +112,7 @@ function onIssueUpdated(issue: Issue) {
       <IssueDetailsSlideover
         v-model:open="isDetailsOpen"
         :issue="selectedIssue"
-        :project-name="selectedIssue ? projectNames[selectedIssue.projectId] : undefined"
+        :project-name="selectedIssue ? projectNames[selectedIssue.project_id] : undefined"
         @updated="onIssueUpdated"
       />
     </template>

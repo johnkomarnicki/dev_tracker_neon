@@ -13,10 +13,10 @@ const emit = defineEmits<{ select: [issue: Issue] }>()
 
 const columns = computed<TableColumn<Issue>[]>(() => [
   { accessorKey: 'title', header: 'Issue', meta: { class: { th: 'w-full min-w-64', td: 'max-w-0 min-w-64' } } },
-  ...(props.projectNames ? [{ accessorKey: 'projectId', header: 'Project' }] : []),
+  ...(props.projectNames ? [{ accessorKey: 'project_id', header: 'Project' }] : []),
   { accessorKey: 'status', header: 'Status' },
   { id: 'attachment', header: 'Attachment', meta: { class: { th: 'text-center', td: 'text-center' } } },
-  { accessorKey: 'createdAt', header: 'Created', meta: { class: { th: 'text-right', td: 'text-right' } } }
+  { accessorKey: 'created_at', header: 'Created', meta: { class: { th: 'text-right', td: 'text-right' } } }
 ])
 </script>
 
@@ -57,10 +57,10 @@ const columns = computed<TableColumn<Issue>[]>(() => [
         </p>
       </template>
 
-      <template #projectId-cell="{ row }">
+      <template #project_id-cell="{ row }">
         <span class="flex items-center gap-2 text-default">
-          <ProjectAvatar :name="projectNames?.[row.original.projectId] ?? '?'" size="sm" />
-          {{ projectNames?.[row.original.projectId] ?? 'Unknown project' }}
+          <ProjectAvatar :name="projectNames?.[row.original.project_id] ?? '?'" size="sm" />
+          {{ projectNames?.[row.original.project_id] ?? 'Unknown project' }}
         </span>
       </template>
 
@@ -69,14 +69,15 @@ const columns = computed<TableColumn<Issue>[]>(() => [
       </template>
 
       <template #attachment-cell="{ row }">
-        <UTooltip v-if="row.original.attachment" :text="row.original.attachment.name">
+        <UTooltip v-if="row.original.attachment_name" :text="row.original.attachment_name">
           <UIcon name="i-lucide-image" class="size-4 text-muted" />
         </UTooltip>
         <span v-else class="text-dimmed">—</span>
       </template>
 
-      <template #createdAt-cell="{ row }">
-        <span class="tabular-nums">{{ formatDate(row.original.createdAt) }}</span>
+      <template #created_at-cell="{ row }">
+        <span v-if="row.original.created_at" class="tabular-nums">{{ formatDate(row.original.created_at) }}</span>
+        <span v-else class="text-dimmed">—</span>
       </template>
 
       <template #empty>
