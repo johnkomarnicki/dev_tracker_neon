@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormError } from "@nuxt/ui";
+import { createProject } from "~/services/devtrack";
 
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ created: [] }>();
@@ -19,12 +20,9 @@ function validate(values: typeof state): FormError[] {
 async function onSubmit() {
   submitting.value = true;
   try {
-    const project = await $fetch("/api/projects", {
-      method: "POST",
-      body: {
-        name: state.name,
-        description: state.description,
-      },
+    const project = await createProject({
+      name: state.name.trim(),
+      description: state.description.trim(),
     });
     toast.add({
       title: "Project created",

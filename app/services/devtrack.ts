@@ -28,6 +28,9 @@ const db = {
   issues: structuredClone(seedIssues)
 }
 
+// Mock object storage: maps an uploaded attachment key to its temporary preview URL.
+const attachmentUrls = new Map<string, string>()
+
 function simulateLatency(ms = MOCK_LATENCY_MS) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -41,15 +44,15 @@ function createId(prefix: string) {
   return `${prefix}_${crypto.randomUUID().slice(0, 8)}`
 }
 
-function newestFirst(a: { createdAt: string }, b: { createdAt: string }) {
-  return b.createdAt.localeCompare(a.createdAt)
+function newestFirst(a: { created_at: string | null }, b: { created_at: string | null }) {
+  return (b.created_at ?? '').localeCompare(a.created_at ?? '')
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 export async function getProjects(): Promise<Project[]> {
   await simulateLatency()
-  return clone([...db.projects].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')))
+  return clone([...db.projects].sort(newestFirst))
 }
 
 export async function getProject(id: string): Promise<Project | null> {
@@ -63,7 +66,7 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
   const project: Project = {
     id: createId('prj'),
     name: input.name,
-    description: input.description,
+    description: input.description || null,
     created_at: new Date().toISOString()
   }
   db.projects.push(project)
@@ -79,7 +82,7 @@ export async function getIssues(): Promise<Issue[]> {
 
 export async function getIssuesByProject(projectId: string): Promise<Issue[]> {
   await simulateLatency()
-  return clone(db.issues.filter(issue => issue.projectId === projectId).sort(newestFirst))
+  return clone(db.issues.filter(issue => issue.project_id === projectId).sort(newestFirst))
 }
 
 export async function getIssue(id: string): Promise<Issue | null> {
@@ -88,19 +91,22 @@ export async function getIssue(id: string): Promise<Issue | null> {
   return issue ? clone(issue) : null
 }
 
-export async function createIssue(input: CreateIssueInput): Promise<Issue> {
+export async function createIssue(projectId: string, input: CreateIssueInput): Promise<Issue> {
   await simulateLatency()
-  if (!db.projects.some(project => project.id === input.projectId)) {
+  if (!db.projects.some(project => project.id === projectId)) {
     throw new Error('Project not found')
   }
   const issue: Issue = {
     id: createId('iss'),
-    projectId: input.projectId,
+    project_id: projectId,
     title: input.title,
-    description: input.description,
+    description: input.description || null,
     status: input.status,
-    attachment: input.attachment,
-    createdAt: new Date().toISOString()
+    attachment_key: input.attachment_key ?? null,
+    attachment_name: input.attachment_name ?? null,
+    attachment_type: input.attachment_type ?? null,
+    attachment_url: input.attachment_key ? attachmentUrls.get(input.attachment_key) ?? null : null,
+    created_at: new Date().toISOString()
   }
   db.issues.push(issue)
   return clone(issue)
@@ -124,11 +130,15 @@ export async function updateIssueStatus(id: string, status: IssueStatus): Promis
  */
 export async function uploadIssueAttachment(file: File): Promise<IssueAttachment> {
   await simulateLatency(600)
+  const key = `uploads/${crypto.randomUUID()}-${file.name}`
+  const url = URL.createObjectURL(file)
+  attachmentUrls.set(key, url)
   return {
+    key,
     name: file.name,
     type: file.type,
     size: file.size,
-    url: URL.createObjectURL(file)
+    url
   }
 }
 
@@ -136,7 +146,7 @@ export async function uploadIssueAttachment(file: File): Promise<IssueAttachment
 
 export async function getProjectStats(projectId: string): Promise<ProjectStats> {
   await simulateLatency()
-  const issues = db.issues.filter(issue => issue.projectId === projectId)
+  const issues = db.issues.filter(issue => issue.project_id === projectId)
   return {
     total: issues.length,
     open: issues.filter(issue => issue.status === 'open').length,

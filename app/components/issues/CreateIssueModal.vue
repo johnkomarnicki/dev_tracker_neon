@@ -58,18 +58,19 @@ async function onSubmit() {
       attachment = await uploadIssueAttachment(state.screenshot)
       toast.add({
         title: 'Screenshot attached',
-        description: `${attachment.name} · ${formatFileSize(attachment.size)}`,
+        description: `${attachment.name} · ${formatFileSize(state.screenshot.size)}`,
         icon: 'i-lucide-image'
       })
     }
 
     phase.value = 'saving'
-    const issue = await createIssue({
-      projectId: props.projectId,
+    const issue = await createIssue(props.projectId, {
       title: state.title.trim(),
       description: state.description.trim(),
       status: state.status,
-      attachment
+      attachment_key: attachment?.key,
+      attachment_name: attachment?.name,
+      attachment_type: attachment?.type
     })
 
     toast.add({

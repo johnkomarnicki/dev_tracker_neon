@@ -16,9 +16,6 @@
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.137",
-    "@neon/config": "^1.8.3",
-    "@neon/env": "^1.4.8",
-    "@neondatabase/serverless": "^1.2.0",
     "@nuxt/ui": "^4.11.2",
     "nuxt": "^4.5.2",
     "tailwindcss": "^4.3.3"

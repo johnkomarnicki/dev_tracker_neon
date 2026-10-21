@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { updateIssueStatus } from '~/services/devtrack'
-import type { Issue, IssueStatus } from '~~/types/devtrack'
+import type { Issue, IssueAttachment, IssueStatus } from '~~/types/devtrack'
 
 const props = defineProps<{
   issue: Issue | null
@@ -15,6 +15,17 @@ const updating = ref(false)
 
 const statusItems = issueStatuses.map(({ value, label, icon }) => ({ value, label, icon }))
 const statusIcon = computed(() => props.issue ? getIssueStatus(props.issue.status).icon : undefined)
+
+const attachment = computed<IssueAttachment | null>(() => {
+  const issue = props.issue
+  if (!issue?.attachment_name || !issue.attachment_type) return null
+  return {
+    key: issue.attachment_key ?? undefined,
+    name: issue.attachment_name,
+    type: issue.attachment_type,
+    url: issue.attachment_url ?? undefined
+  }
+})
 
 async function onStatusChange(status: IssueStatus) {
   if (!props.issue || status === props.issue.status) return
@@ -84,7 +95,7 @@ async function onStatusChange(status: IssueStatus) {
             Created
           </dt>
           <dd class="tabular-nums text-default">
-            {{ formatDateTime(issue.createdAt) }}
+            {{ issue.created_at ? formatDateTime(issue.created_at) : '—' }}
           </dd>
         </dl>
 
@@ -106,7 +117,7 @@ async function onStatusChange(status: IssueStatus) {
           <h3 class="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
             Screenshot
           </h3>
-          <IssueAttachment v-if="issue.attachment" :attachment="issue.attachment" />
+          <IssueAttachment v-if="attachment" :attachment="attachment" />
           <p v-else class="text-sm text-dimmed">
             No screenshot attached.
           </p>

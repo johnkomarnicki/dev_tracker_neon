@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getProjects } from "~/services/devtrack";
+
 useHead({ title: "Projects · DevTrack" });
 
 const isCreateOpen = ref(false);
@@ -8,10 +10,7 @@ const {
   status,
   error,
   refresh,
-} = useLazyAsyncData("projects", async () => {
-  const projects = await $fetch("/api/projects");
-  return projects;
-});
+} = useLazyAsyncData("projects", () => getProjects());
 
 const isInitialLoad = computed(() => status.value === "pending" && !projects.value);
 </script>
