@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { IssueAttachment } from '~~/types/devtrack'
 
-const props = defineProps<{ attachment: IssueAttachment }>()
+const props = defineProps<{ attachment: Omit<IssueAttachment, 'size'> & { size?: number } }>()
 
 const isImage = computed(() => props.attachment.type.startsWith('image/') && !!props.attachment.url)
 </script>
@@ -28,7 +28,7 @@ const isImage = computed(() => props.attachment.type.startsWith('image/') && !!p
     <div class="flex items-center gap-2 border-t border-default px-3 py-2 text-xs">
       <UIcon name="i-lucide-paperclip" class="size-3.5 shrink-0 text-muted" />
       <span class="truncate font-medium text-default">{{ attachment.name }}</span>
-      <span class="ms-auto shrink-0 tabular-nums text-muted">{{ formatFileSize(attachment.size) }}</span>
+      <span v-if="attachment.size !== undefined" class="ms-auto shrink-0 tabular-nums text-muted">{{ formatFileSize(attachment.size) }}</span>
     </div>
   </div>
 </template>

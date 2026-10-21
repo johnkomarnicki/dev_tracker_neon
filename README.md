@@ -2,7 +2,7 @@
 
 **Track issues. Ship better software.**
 
-DevTrack is a small issue and feedback tracker for software teams. You can create projects, log issues with screenshots, move issues between Open, In Progress, and Closed, and see per-project statistics.
+DevTrack is a small issue and feedback tracker for software teams. You can create projects, log issues with screenshots, and move issues between Open, In Progress, and Closed.
 
 This repository is the frontend starter for a tutorial series. The UI is complete; the backend is intentionally a mock.
 
@@ -33,7 +33,6 @@ The app currently uses an **in-memory mock backend** that runs in the browser.
 
 - **Projects and issues are not persisted.** New records exist only in memory and disappear when you refresh the page. A refresh resets everything to the seed data.
 - **Attachments are only temporary browser previews.** A selected screenshot is turned into a `blob:` URL with `URL.createObjectURL()`. It is not converted to base64 or uploaded anywhere.
-- **Project statistics are calculated by the mock service.** `getProjectStats()` counts the in-memory issues. Components never calculate stats themselves.
 - **Authentication is intentionally not implemented.** The user shown in the sidebar (Alex Morgan) is a static placeholder.
 
 Every data operation goes through one file, so the backend can be swapped without restructuring the UI:
@@ -54,7 +53,6 @@ The service exposes async functions that return Promises, like real network call
 | `getProjects()`, `getProject(id)`, `createProject(input)` | Neon Postgres |
 | `getIssues()`, `getIssuesByProject(projectId)`, `getIssue(id)`, `createIssue(input)`, `updateIssueStatus(id, status)` | Neon Postgres |
 | `uploadIssueAttachment(file)` | Neon Object Storage |
-| `getProjectStats(projectId)` | Neon Function |
 
 Each call adds a short artificial delay so loading states are visible.
 
@@ -65,6 +63,5 @@ SSR is disabled in `nuxt.config.ts` because the mock data lives in browser memor
 ```text
 [ ] Replace mock project and issue storage with Neon Postgres
 [ ] Replace mock attachment upload with Neon Object Storage
-[ ] Replace getProjectStats() with a Neon Function
 [ ] Add Neon Auth
 ```
